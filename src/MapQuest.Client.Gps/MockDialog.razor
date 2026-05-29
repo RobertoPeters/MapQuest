@@ -1,0 +1,127 @@
+@using System
+@using MapQuest.Interfaces
+@implements IDisposable
+@inject IGpsService GpsService
+
+<SfDialog Width="380px" ShowCloseIcon="true" @bind-Visible="@IsVisible"  AllowDragging="true">
+	<DialogTemplates>
+		<Header> Gps location </Header>
+		<Content>
+			<SfTextBox Value="@(GpsService.IsMocked ? "Mocking Actief" : "Echte GPS Actief")"
+					   Placeholder="GPS Status"
+					   FloatLabelType="FloatLabelType.Always"
+					   Readonly="true" />
+
+			<SfNumericTextBox TValue="double?"
+							  Value="@GpsService.CurrentLocation?.Latitude"
+							  Placeholder="Huidige Latitude"
+							  FloatLabelType="FloatLabelType.Always"
+							  Readonly="true"
+							  ShowSpinButton="false"
+							  Format="F6" />
+
+			<SfNumericTextBox TValue="double?"
+							  Value="@GpsService.CurrentLocation?.Longitude"
+							  Placeholder="Huidige Longitude"
+							  FloatLabelType="FloatLabelType.Always"
+							  Readonly="true"
+							  ShowSpinButton="false"
+							  Format="F6" />
+
+			<SfNumericTextBox TValue="double"
+							  @bind-Value="@_mockLatitude"
+							  Placeholder="Mock Latitude"
+							  FloatLabelType="FloatLabelType.Always"
+							  ShowSpinButton="false"
+							  Format="F6" />
+
+			<SfNumericTextBox TValue="double"
+							  @bind-Value="@_mockLongitude"
+							  Placeholder="Mock Longitude"
+							  FloatLabelType="FloatLabelType.Always"
+							  ShowSpinButton="false"
+							  Format="F6" />
+
+			<SfNumericTextBox TValue="double"
+							  @bind-Value="@_mockAccuracy"
+							  Placeholder="Mock Accuracy (meters)"
+							  FloatLabelType="FloatLabelType.Always"
+							  ShowSpinButton="false"
+							  Format="F0" />
+
+			<SfButton Content="Set Mock Location"
+					  OnClick="@OnSetMockClick" />
+
+			@if (GpsService.IsMocked)
+			{
+				<SfButton Content="Reset to Real GPS"
+						  OnClick="@OnResetClick" />
+			}
+		</Content>
+	</DialogTemplates>
+	<DialogButtons>
+		<DialogButton Content="Close" OnClick="@OnCloseClick" />
+	</DialogButtons>
+</SfDialog>
+
+
+@code {
+	private bool IsVisible { get; set; } = false;
+	private double _mockLatitude;
+	private double _mockLongitude;
+	private double _mockAccuracy = 50.0;
+
+	protected override void OnInitialized()
+	{
+		GpsService.OnLocationUpdated += GpsService_OnLocationUpdated;
+	}
+
+	public void OpenDialog()
+	{
+		if (GpsService.CurrentLocation != null)
+		{
+			_mockLatitude = GpsService.CurrentLocation.Latitude;
+			_mockLongitude = GpsService.CurrentLocation.Longitude;
+			_mockAccuracy = GpsService.CurrentLocation.Accuracy ?? 50.0;
+		}
+		IsVisible = true;
+		StateHasChanged();
+	}
+
+	private void OnCloseClick()
+	{
+		IsVisible = false;
+	}
+
+	private void OnSetMockClick()
+	{
+		GpsService.SetMockLocation(_mockLatitude, _mockLongitude, _mockAccuracy);
+	}
+
+	private void OnResetClick()
+	{
+		GpsService.DisableMock();
+		if (GpsService.CurrentLocation != null)
+		{
+			_mockLatitude = GpsService.CurrentLocation.Latitude;
+			_mockLongitude = GpsService.CurrentLocation.Longitude;
+			_mockAccuracy = GpsService.CurrentLocation.Accuracy ?? 50.0;
+		}
+	}
+
+	private void GpsService_OnLocationUpdated(object? sender, GpsCoordinates? e)
+	{
+		if (!GpsService.IsMocked && e != null)
+		{
+			_mockLatitude = e.Latitude;
+			_mockLongitude = e.Longitude;
+			_mockAccuracy = e.Accuracy ?? 50.0;
+		}
+		InvokeAsync(StateHasChanged);
+	}
+
+	public void Dispose()
+	{
+		GpsService.OnLocationUpdated -= GpsService_OnLocationUpdated;
+	}
+}

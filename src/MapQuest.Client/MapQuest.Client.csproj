@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+
+  <PropertyGroup>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
+    <StaticWebAssetProjectMode>Default</StaticWebAssetProjectMode>
+    <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" />
+    <PackageReference Include="Refit.HttpClientFactory" />
+    <PackageReference Include="Syncfusion.Blazor.Themes" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MapQuest.Client.Gps\MapQuest.Client.Gps.csproj" />
+    <ProjectReference Include="..\MapQuest.Client.Interfaces\MapQuest.Client.Interfaces.csproj" />
+    <ProjectReference Include="..\MapQuest.Client.Map\MapQuest.Client.Map.csproj" />
+    <ProjectReference Include="..\MapQuest.Client.State\MapQuest.Client.State.csproj" />
+    <ProjectReference Include="..\MapQuest.Client.Users\MapQuest.Client.Users.csproj" />
+  </ItemGroup>
+
+</Project>

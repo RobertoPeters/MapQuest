@@ -1,0 +1,27 @@
+::deep .current-position-container {
+    position: relative;
+    width: 0;
+    height: 0;
+}
+
+::deep .position-marker {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    background-color: #007bff;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.4);
+    z-index: 2;
+    transform: translate(-50%, -50%);
+}
+
+::deep .accuracy-circle {
+    position: absolute;
+    border-radius: 50%;
+    background-color: rgba(0, 123, 255, 0.15);
+    border: 1px solid rgba(0, 123, 255, 0.4);
+    z-index: 1;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+}

@@ -1,0 +1,152 @@
+@page "/kaart"
+@using MapQuest.Interfaces
+@inject IGpsService GpsService
+@implements IDisposable
+
+<SfMaps @ref="maps" Height="100vh">
+    <MapsEvents OnZoomComplete="@OnZoomComplete"></MapsEvents>
+    <MapsCenterPosition @ref="mapsCenterPosition"></MapsCenterPosition>
+    <MapsZoomSettings Enable="true" ZoomFactor="@zoomFactor" MaxZoom="19">
+        <MapsZoomToolbarSettings>
+            <MapsZoomToolbarButton ToolbarItems="new List<ToolbarItem>() { ToolbarItem.Zoom, ToolbarItem.ZoomIn, ToolbarItem.ZoomOut,
+                                                                                                        ToolbarItem.Pan, ToolbarItem.Reset }"></MapsZoomToolbarButton>
+        </MapsZoomToolbarSettings>
+    </MapsZoomSettings>
+    <MapsLayers>
+        <MapsLayer UrlTemplate="https://tile.openstreetmap.org/level/tileX/tileY.png" TValue="string">
+            <MapsMarkerSettings>
+                <MapsMarker Visible="true" DataSource="@currentGpsLocation" LatitudeValuePath="Latitude" LongitudeValuePath="Longitude" TValue="CurrentPositionMarker" Height="200" Width="200">
+                    <MarkerTemplate>
+                        @{
+                            var marker = context as CurrentPositionMarker;
+                            if (marker != null)
+                            {
+                                var diameter = GetAccuracyDiameter(marker);
+                                <div class="current-position-container">
+                                    @if (diameter > 0)
+                                    {
+                                        <div class="accuracy-circle" style="width: @(diameter.ToString(System.Globalization.CultureInfo.InvariantCulture))px; height: @(diameter.ToString(System.Globalization.CultureInfo.InvariantCulture))px;"></div>
+                                    }
+                                    <div class="position-marker"></div>
+                                </div>
+                            }
+                        }
+                    </MarkerTemplate>
+                </MapsMarker>
+            </MapsMarkerSettings>
+        </MapsLayer>
+    </MapsLayers>
+</SfMaps>
+
+<MapQuest.Client.Gps.MockDialog @ref="MockDialogRef" />
+
+<div style="position: absolute; bottom: 30px; left: 10px; z-index: 1000;">
+    <SfButton Content="Open Mock Dialog" OnClick="@OnOpenMockDialogClick" />
+</div>
+
+@code {
+    SfMaps? maps;
+    MapsCenterPosition? mapsCenterPosition;
+    bool doCenterMapToCurrentLocation = true;
+    MapQuest.Client.Gps.MockDialog? MockDialogRef;
+    List<CurrentPositionMarker> currentGpsLocation = [];
+    double zoomFactor = 16;
+
+    public class CurrentPositionMarker
+    {
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
+        public double? Accuracy { get; set; }
+    }
+
+    override protected void OnInitialized()
+    {
+        if (GpsService.CurrentLocation != null)
+        {
+            currentGpsLocation.Add(new CurrentPositionMarker
+            {
+                Latitude = GpsService.CurrentLocation.Latitude,
+                Longitude = GpsService.CurrentLocation.Longitude,
+                Accuracy = GpsService.CurrentLocation.Accuracy
+            });
+        }
+        GpsService.OnLocationUpdated += GpsService_OnLocationUpdated;
+    }
+
+    override protected void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            CheckCenterMapToCurrentLocation();
+        }
+    }
+
+    private void GpsService_OnLocationUpdated(object? sender, GpsCoordinates? e)
+    {
+        if (e == null)
+        {
+            return;
+        }
+
+        if (!currentGpsLocation.Any())
+        {
+            currentGpsLocation.Add(new CurrentPositionMarker
+            {
+                Latitude = e.Latitude,
+                Longitude = e.Longitude,
+                Accuracy = e.Accuracy
+            });
+        }
+        else
+        {
+            currentGpsLocation[0].Latitude = e.Latitude;
+            currentGpsLocation[0].Longitude = e.Longitude;
+            currentGpsLocation[0].Accuracy = e.Accuracy;
+        }
+
+        CheckCenterMapToCurrentLocation(force: GpsService.IsMocked);
+
+        maps?.Refresh();
+    }
+
+    private void CheckCenterMapToCurrentLocation(bool force = false)
+    {
+        if ((doCenterMapToCurrentLocation || force) && mapsCenterPosition != null && currentGpsLocation.Any())
+        {
+            mapsCenterPosition.Latitude = currentGpsLocation[0].Latitude;
+            mapsCenterPosition.Longitude = currentGpsLocation[0].Longitude;
+            doCenterMapToCurrentLocation = false;
+        }
+    }
+
+    private void OnZoomComplete(MapZoomEventArgs args)
+    {
+        zoomFactor = args.TileZoomLevel;
+    }
+
+    private double GetAccuracyDiameter(CurrentPositionMarker marker)
+    {
+        if (marker.Accuracy == null || marker.Accuracy <= 0)
+        {
+            return 0;
+        }
+
+        // Earth equatorial circumference in meters
+        const double EarthCircumference = 40075016.686;
+        double latitudeRad = marker.Latitude * Math.PI / 180.0;
+        double resolution = (EarthCircumference * Math.Cos(latitudeRad)) / (256.0 * Math.Pow(2.0, zoomFactor));
+        var result = (marker.Accuracy.Value * 2.0) / resolution;
+        return result;
+    }
+
+    public void Dispose()
+    {
+        GpsService.OnLocationUpdated -= GpsService_OnLocationUpdated;
+    }
+
+    private void OnOpenMockDialogClick()
+    {
+        MockDialogRef?.OpenDialog();
+    }
+
+}

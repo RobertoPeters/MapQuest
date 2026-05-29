@@ -1,0 +1,19 @@
+﻿@page "/gebruikers"
+@using MapQuest.Client.Interfaces
+@using Syncfusion.Blazor.Data
+@using Microsoft.AspNetCore.Authorization
+@inject IUserService userService
+
+@attribute [Authorize(Roles = "Admin")]
+
+<PageTitle>Gebruikers</PageTitle>
+
+<SfGrid TValue="Models.User" AllowPaging="true">
+	<SfDataManager Adaptor="Adaptors.CustomAdaptor" AdaptorInstance="@typeof(UserDataAdaptor)" />
+	<GridPageSettings PageSize="5" PageSizes="@(new string[] { "5", "10", "20" })" PageCount="3" />
+	<GridColumns>
+		<GridColumn Field="@nameof(Models.User.Id)" HeaderText="ID" TextAlign="TextAlign.Center" Width="100"></GridColumn>
+		<GridColumn Field="@nameof(Models.User.Username)" HeaderText="Naam" TextAlign="TextAlign.Left" Width="200"></GridColumn>
+		<GridColumn Field="@nameof(Models.User.Email)" HeaderText="E-mail" TextAlign="TextAlign.Left" Width="250"></GridColumn>
+	</GridColumns>
+</SfGrid>
