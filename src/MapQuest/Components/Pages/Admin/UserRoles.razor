@@ -1,0 +1,148 @@
+﻿@page "/admin/users/{UserId}/roles"
+@attribute [Authorize(Roles = "Admin")]
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@using MapQuest.Data
+@inject UserManager<ApplicationUser> UserManager
+@inject RoleManager<IdentityRole> RoleManager
+@inject NavigationManager NavigationManager
+<PageTitle>Manage User Roles - MapQuest Admin</PageTitle>
+<div class="admin-container">
+    <div class="admin-header">
+        <a href="admin/users" class="back-link mb-3 d-inline-block">
+            <i class="bi bi-arrow-left me-1"></i> Back to User List
+        </a>
+        <h1><span class="header-gradient">Manage User Roles</span></h1>
+        <p class="subtitle">Assign or revoke access roles for the user account.</p>
+    </div>
+    @if (TargetUser == null)
+    {
+        <div class="alert alert-danger" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> User with ID '@UserId' was not found.
+        </div>
+    }
+    else
+    {
+        @if (!string.IsNullOrEmpty(ErrorMessage))
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i> @ErrorMessage
+            </div>
+        }
+        <div class="admin-grid-centered">
+            <div class="admin-card">
+                <div class="card-header border-bottom">
+                    <div class="user-summary d-flex align-items-center">
+                        <div class="user-avatar-large">
+                            @TargetUser.Email?[0].ToString().ToUpper()
+                        </div>
+                        <div class="ms-3">
+                            <h2 class="mb-1">@TargetUser.Email</h2>
+                            <span class="text-muted small">User ID: @TargetUser.Id</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <EditForm Model="Input!" method="post" OnValidSubmit="UpdateUserRoles" FormName="UserRolesForm">
+                        <AntiforgeryToken />
+                        <InputText type="hidden" @bind-Value="Input!.UserId" />
+                        <div class="form-group mb-4">
+                            <label class="form-label d-block mb-3 font-weight-bold">Roles for @TargetUser.Email</label>
+
+                            @if (AvailableRoles.Count == 0)
+                            {
+                                <p class="text-muted italic">No system roles configured. Go to <a href="admin/roles">Manage Roles</a> first.</p>
+                            }
+                            else
+                            {
+                                <div class="roles-checkbox-list">
+                                    @foreach (var role in AvailableRoles)
+                                    {
+                                        <div class="form-check checkbox-premium py-2 px-3 mb-2 rounded border d-flex align-items-center">
+                                            <input class="form-check-input darker-border-checkbox" type="checkbox" id="@($"role_{role.Name}")" name="Input.SelectedRoles" value="@role.Name" checked="@Input!.SelectedRoles.Contains(role.Name ?? "")" />
+                                            <label class="form-check-label ms-2 cursor-pointer mb-0 w-100" for="@($"role_{role.Name}")">
+                                                <span class="fw-bold">@role.Name</span>
+                                            </label>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                        <button type="submit" class="btn btn-premium w-100 py-3 mt-2" disabled="@(TargetUser.Email == "admin@mapquest.com")">
+                            <span class="btn-text">
+                                @(TargetUser.Email == "admin@mapquest.com" ? "Cannot Modify Primary Admin Roles" : "Save Changes")
+                            </span>
+                        </button>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+@code {
+    [Parameter]
+    public string UserId { get; set; } = "";
+    private ApplicationUser? TargetUser { get; set; }
+    private List<IdentityRole> AvailableRoles { get; set; } = new();
+    [SupplyParameterFromForm(FormName = "UserRolesForm")]
+    private UserRolesInputModel? Input { get; set; }
+    private string? ErrorMessage { get; set; }
+    [CascadingParameter]
+    private HttpContext? HttpContext { get; set; }
+    protected override async Task OnInitializedAsync()
+    {
+        TargetUser = await UserManager.FindByIdAsync(UserId);
+        AvailableRoles = await RoleManager.Roles.OrderBy(r => r.Name).ToListAsync();
+        Input ??= new();
+        if (TargetUser != null)
+        {
+            Input.UserId = TargetUser.Id;
+
+            // Only populate selected roles on initial load, not postback
+            if (HttpContext != null && HttpMethods.IsGet(HttpContext.Request.Method))
+            {
+                var userRoles = await UserManager.GetRolesAsync(TargetUser);
+                Input.SelectedRoles = userRoles.ToList();
+            }
+        }
+    }
+    private async Task UpdateUserRoles()
+    {
+        if (TargetUser == null || Input == null) return;
+        if (TargetUser.Email == "admin@mapquest.com")
+        {
+            ErrorMessage = "The roles of the primary seed administrator account cannot be modified.";
+            return;
+        }
+        var currentRoles = await UserManager.GetRolesAsync(TargetUser);
+
+        // Remove from roles not in selection
+        var rolesToRemove = currentRoles.Except(Input.SelectedRoles).ToList();
+        if (rolesToRemove.Count > 0)
+        {
+            var removeResult = await UserManager.RemoveFromRolesAsync(TargetUser, rolesToRemove);
+            if (!removeResult.Succeeded)
+            {
+                ErrorMessage = "Failed to remove roles: " + string.Join(", ", removeResult.Errors.Select(e => e.Description));
+                return;
+            }
+        }
+        // Add to newly selected roles
+        var rolesToAdd = Input.SelectedRoles.Except(currentRoles).ToList();
+        if (rolesToAdd.Count > 0)
+        {
+            var addResult = await UserManager.AddToRolesAsync(TargetUser, rolesToAdd);
+            if (!addResult.Succeeded)
+            {
+                ErrorMessage = "Failed to add roles: " + string.Join(", ", addResult.Errors.Select(e => e.Description));
+                return;
+            }
+        }
+        NavigationManager.NavigateTo("admin/users");
+    }
+    public class UserRolesInputModel
+    {
+        public string UserId { get; set; } = "";
+        public List<string> SelectedRoles { get; set; } = new();
+    }
+}

@@ -1,0 +1,18 @@
+<Router AppAssembly="typeof(Program).Assembly"
+        AdditionalAssemblies="new[]
+                                    {
+                                    typeof(MapQuest.Client.Users._Imports).Assembly,
+                                    typeof(MapQuest.Client.Gps._Imports).Assembly,
+                                    typeof(MapQuest.Client.Map._Imports).Assembly,
+                                    typeof(MapQuest.Client.Quests._Imports).Assembly
+                                    }"
+    NotFoundPage="typeof(Pages.NotFound)">
+<Found Context="routeData">
+        <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)">
+            <NotAuthorized>
+                <RedirectToLogin />
+            </NotAuthorized>
+        </AuthorizeRouteView>
+        <FocusOnNavigate RouteData="routeData" Selector="h1" />
+    </Found>
+</Router>

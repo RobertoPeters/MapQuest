@@ -1,0 +1,18 @@
+﻿@page "/mijnpuzzeltochten"
+@using MapQuest.Client.Interfaces
+@using Syncfusion.Blazor.Data
+@using Microsoft.AspNetCore.Authorization
+@inject IQuestService questService
+
+@attribute [Authorize]
+
+<PageTitle>Mijn puzzeltochten</PageTitle>
+
+<SfGrid TValue="Models.Quest" AllowPaging="true">
+	<SfDataManager Adaptor="Adaptors.CustomAdaptor" AdaptorInstance="@typeof(QuestDataAdaptor)" />
+	<GridPageSettings PageSize="5" PageSizes="@(new string[] { "5", "10", "20" })" PageCount="3" />
+	<GridColumns>
+		<GridColumn Field="@nameof(Models.Quest.Id)" HeaderText="ID" TextAlign="TextAlign.Center" Width="100"></GridColumn>
+		<GridColumn Field="@nameof(Models.Quest.Name)" HeaderText="Naam" TextAlign="TextAlign.Left" Width="200"></GridColumn>
+	</GridColumns>
+</SfGrid>

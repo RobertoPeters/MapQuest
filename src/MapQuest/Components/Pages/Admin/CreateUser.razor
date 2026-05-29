@@ -1,0 +1,133 @@
+﻿@page "/admin/users/create"
+@attribute [Authorize(Roles = "Admin")]
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@using MapQuest.Data
+@inject UserManager<ApplicationUser> UserManager
+@inject RoleManager<IdentityRole> RoleManager
+@inject NavigationManager NavigationManager
+<PageTitle>Create User - MapQuest Admin</PageTitle>
+<div class="admin-container">
+    <div class="admin-header">
+        <a href="admin/users" class="back-link mb-3 d-inline-block">
+            <i class="bi bi-arrow-left me-1"></i> Back to User List
+        </a>
+        <h1><span class="header-gradient">Create New User</span></h1>
+        <p class="subtitle">Register a new system user and assign their access permissions.</p>
+    </div>
+    @if (!string.IsNullOrEmpty(ErrorMessage))
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> @ErrorMessage
+        </div>
+    }
+    <div class="admin-grid-centered">
+        <div class="admin-card">
+            <div class="card-header">
+                <h2>Account Information</h2>
+            </div>
+            <div class="card-body">
+                <EditForm Model="Input!" method="post" OnValidSubmit="RegisterNewUser" FormName="CreateUserForm">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary class="text-danger mb-4" role="alert" />
+                    <div class="form-group mb-3">
+                        <label for="email" class="form-label font-weight-bold">Email Address</label>
+                        <InputText @bind-Value="Input!.Email" id="email" type="email" class="form-control premium-input" placeholder="user@mapquest.com" autocomplete="username" />
+                        <ValidationMessage For="() => Input!.Email" class="text-danger mt-1" />
+                    </div>
+                    <div class="form-group mb-4">
+                        <label for="password" class="form-label font-weight-bold">Temporary Password</label>
+                        <InputText @bind-Value="Input!.Password" id="password" type="password" class="form-control premium-input" placeholder="Minimum 6 characters" autocomplete="new-password" />
+                        <ValidationMessage For="() => Input!.Password" class="text-danger mt-1" />
+                    </div>
+                    <div class="form-group mb-4">
+                        <label class="form-label d-block mb-2 font-weight-bold">Assign System Roles</label>
+                        <div class="roles-checkbox-list">
+                            @if (AvailableRoles.Count == 0)
+                            {
+                                <p class="text-muted italic">No system roles configured. Go to <a href="admin/roles">Manage Roles</a> first.</p>
+                            }
+                            else
+                            {
+                                @foreach (var role in AvailableRoles)
+                                {
+                                    <div class="form-check checkbox-premium py-2 px-3 mb-2 rounded border d-flex align-items-center">
+                                        <input class="form-check-input darker-border-checkbox" type="checkbox" id="@($"role_{role.Name}")" name="Input.SelectedRoles" value="@role.Name" checked="@Input!.SelectedRoles.Contains(role.Name ?? "")" />
+                                        <label class="form-check-label ms-2 cursor-pointer mb-0 w-100" for="@($"role_{role.Name}")">
+                                            <span class="fw-bold">@role.Name</span>
+                                        </label>
+                                    </div>
+                                }
+                            }
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-premium w-100 py-3 mt-2">
+                        <span class="btn-text"><i class="bi bi-person-plus-fill me-2"></i> Create System User</span>
+                    </button>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+</div>
+@code {
+    private List<IdentityRole> AvailableRoles { get; set; } = new();
+    [SupplyParameterFromForm(FormName = "CreateUserForm")]
+    private CreateUserInputModel? Input { get; set; }
+    private string? ErrorMessage { get; set; }
+    protected override async Task OnInitializedAsync()
+    {
+        AvailableRoles = await RoleManager.Roles.OrderBy(r => r.Name).ToListAsync();
+        Input ??= new();
+    }
+    private async Task RegisterNewUser()
+    {
+        if (Input == null || string.IsNullOrWhiteSpace(Input.Email) || string.IsNullOrWhiteSpace(Input.Password))
+        {
+            ErrorMessage = "Email and Password are required.";
+            return;
+        }
+        var existingUser = await UserManager.FindByEmailAsync(Input.Email);
+        if (existingUser != null)
+        {
+            ErrorMessage = $"User with email '{Input.Email}' already exists.";
+            return;
+        }
+        var user = new ApplicationUser
+        {
+            UserName = Input.Email,
+            Email = Input.Email,
+            EmailConfirmed = true
+        };
+        var result = await UserManager.CreateAsync(user, Input.Password);
+        if (result.Succeeded)
+        {
+            // Add to selected roles
+            if (Input.SelectedRoles.Count > 0)
+            {
+                var roleResult = await UserManager.AddToRolesAsync(user, Input.SelectedRoles);
+                if (!roleResult.Succeeded)
+                {
+                    ErrorMessage = "User created, but role assignment failed: " +
+                        string.Join(", ", roleResult.Errors.Select(e => e.Description));
+                    return;
+                }
+            }
+            NavigationManager.NavigateTo("admin/users");
+        }
+        else
+        {
+            ErrorMessage = string.Join(", ", result.Errors.Select(e => e.Description));
+        }
+    }
+    public class CreateUserInputModel
+    {
+        [Required(ErrorMessage = "Email is required.")]
+        [EmailAddress(ErrorMessage = "Invalid email address format.")]
+        public string Email { get; set; } = "";
+        [Required(ErrorMessage = "Password is required.")]
+        [StringLength(100, MinimumLength = 6, ErrorMessage = "Password must be at least 6 characters long.")]
+        public string Password { get; set; } = "";
+        public List<string> SelectedRoles { get; set; } = new();
+    }
+}

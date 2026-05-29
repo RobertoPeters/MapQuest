@@ -1,0 +1,21 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="nuget.config" />
+  </Folder>
+  <Project Path="MapQuest.Client.Gps/MapQuest.Client.Gps.csproj" Id="60e4c5b3-0797-4f22-a45d-c7f52de42eb8" />
+  <Project Path="MapQuest.Client.Interfaces/MapQuest.Client.Interfaces.csproj" Id="89b67c86-3d13-450c-b023-9c11e21ac5dc" />
+  <Project Path="MapQuest.Client.Map/MapQuest.Client.Map.csproj" />
+  <Project Path="MapQuest.Client.Quests/MapQuest.Client.Quests.csproj" />
+  <Project Path="MapQuest.Client.State/MapQuest.Client.State.csproj" Id="24d6756a-0ab6-446b-a53b-8120e37fa9d1" />
+  <Project Path="MapQuest.Client.Users/MapQuest.Client.Users.csproj" Id="09aa603c-24a2-4d71-bcc1-78fd3cd8ae3d" />
+  <Project Path="MapQuest.Client/MapQuest.Client.csproj" />
+  <Project Path="MapQuest.Data.Application/MapQuest.Data.Application.csproj" />
+  <Project Path="MapQuest.Data.Document/MapQuest.Data.Document.csproj" Id="834702e6-005f-489a-9c73-140bf2d99c33" />
+  <Project Path="MapQuest.Interfaces/MapQuest.Interfaces.csproj" />
+  <Project Path="MapQuest.Models/MapQuest.Models.csproj" Id="799860a9-7192-4f4d-b332-fb91973c1f50" />
+  <Project Path="MapQuest.QuestService/MapQuest.QuestService.csproj" />
+  <Project Path="MapQuest.UserService/MapQuest.UserService.csproj" Id="0efd83e6-4894-4981-890e-960dbdca7ea6" />
+  <Project Path="MapQuest/MapQuest.csproj" />
+</Solution>

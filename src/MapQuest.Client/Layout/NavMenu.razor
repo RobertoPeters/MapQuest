@@ -1,0 +1,51 @@
+@using Syncfusion.Blazor.Navigations
+@implements IDisposable
+
+@inject NavigationManager NavigationManager
+
+<SfMenu TValue="MenuItem" Orientation="Syncfusion.Blazor.Navigations.Orientation.Vertical">
+    <MenuItems>
+        <MenuItem Text="Start" Url="/" />
+        <MenuItem Text="Inloggen" Hidden="@(signedIn)" Url="/login" />
+        <MenuItem Text="Kaart" Hidden="@(!signedIn)" Url="/kaart" />
+        <MenuItem Text="Mijn puzzeltochten" Hidden="@(!signedIn)" Url="/mijnpuzzeltochten" />
+        <MenuItem Text="Gebruikers" Hidden="@(!isAdmin)" Url="/gebruikers" />
+        <MenuItem Text="Uitloggen" Hidden="@(!signedIn)" Url="/logout" />
+    </MenuItems>
+</SfMenu>
+
+<AuthorizeView>
+    @{
+        signedIn = true;
+    }
+</AuthorizeView>
+
+<AuthorizeView Roles="Admin">
+    @{
+        isAdmin = true;
+    }
+</AuthorizeView>
+
+@code {
+    private string? currentUrl;
+    private bool signedIn;
+    private bool isAdmin;
+
+    protected override void OnInitialized()
+    {
+        currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        NavigationManager.LocationChanged += OnLocationChanged;
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        currentUrl = NavigationManager.ToBaseRelativePath(e.Location);
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= OnLocationChanged;
+    }
+}
+

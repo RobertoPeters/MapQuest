@@ -1,0 +1,22 @@
+{
+  "name": "MapQuest",
+  "short_name": "MapQuest",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0d1117",
+  "theme_color": "#1b6ec2",
+  "orientation": "portrait",
+  "description": "Progressive Web App for tracking and mapping your GPS locations.",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ]
+}

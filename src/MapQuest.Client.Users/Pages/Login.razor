@@ -1,0 +1,94 @@
+@page "/login"
+@using MapQuest.Models
+@using MapQuest.Client.Interfaces
+@using Refit
+@using Syncfusion.Blazor.Inputs
+@using Syncfusion.Blazor.Cards
+@using Syncfusion.Blazor.Notifications
+@using Syncfusion.Blazor.Buttons
+@inject IUserService UserService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Inloggen - Puzzeltocht</PageTitle>
+
+<SfCard>
+    <CardHeader Title="Puzzeltocht" SubTitle="Log in op uw account om door te gaan" />
+    <CardContent>
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <SfMessage Severity="MessageSeverity.Error">
+                @errorMessage
+            </SfMessage>
+        }
+
+        <SfDataForm Model="@loginModel"
+                    ButtonsAlignment="FormButtonsAlignment.Left"
+                     
+                    OnValidSubmit="HandleLogin">
+            <FormValidator>
+                <DataAnnotationsValidator></DataAnnotationsValidator>
+            </FormValidator>
+
+            <FormItems>
+                <FormItem Field="@nameof(loginModel.Email)" Placeholder="Email" />
+                <FormItem Field="@nameof(loginModel.Password)" Placeholder="Wachtwoord">
+                    <Template>
+                        <label class="e-form-label">Wachtwoord</label>
+                        <SfTextBox @bind-Value="loginModel.Password"
+                                   Type="InputType.Password"
+                                   Placeholder="Wachtwoord"
+                                   FloatLabelType="FloatLabelType.Always" />
+                    </Template>
+                </FormItem>
+            </FormItems>
+            <FormButtons>
+                <SfButton>Inloggen</SfButton>
+            </FormButtons>
+        </SfDataForm>
+    </CardContent>
+</SfCard>
+
+@code {
+    private LoginRequest loginModel = new();
+    private string? errorMessage;
+
+    [SupplyParameterFromQuery]
+    private string? ReturnUrl { get; set; }
+
+    private async Task HandleLogin()
+    {
+        errorMessage = null;
+
+        try
+        {
+            await UserService.LoginAsync(loginModel);
+
+            // Redirect with force load to refresh authentication state
+            var redirectUrl = string.IsNullOrEmpty(ReturnUrl) ? "/" : ReturnUrl;
+            NavigationManager.NavigateTo(redirectUrl, forceLoad: true);
+        }
+        catch (ApiException apiEx)
+        {
+            try
+            {
+                var errorResponse = await apiEx.GetContentAsAsync<Dictionary<string, string>>();
+                if (errorResponse != null && errorResponse.TryGetValue("error", out var errMsg))
+                {
+                    errorMessage = errMsg;
+                }
+                else
+                {
+                    errorMessage = "Fout bij inloggen. Controleer uw gegevens.";
+                }
+            }
+            catch
+            {
+                errorMessage = "Fout bij inloggen. Controleer uw gegevens.";
+            }
+        }
+        catch (Exception)
+        {
+            errorMessage = "Er is een onverwachte fout opgetreden.";
+        }
+    }
+}

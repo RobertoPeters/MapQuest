@@ -1,0 +1,14 @@
+﻿@page "/logout"
+@using MapQuest.Client.Interfaces
+@using Refit
+@inject IUserService UserService
+@inject NavigationManager NavigationManager
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await UserService.LogoutAsync();
+        NavigationManager.NavigateTo("/", forceLoad: true);
+        await base.OnInitializedAsync();
+    }
+}
