@@ -5,16 +5,16 @@
 
 <SfDialog Width="380px" ShowCloseIcon="true" @bind-Visible="@IsVisible"  AllowDragging="true">
 	<DialogTemplates>
-		<Header> Gps location </Header>
+		<Header> Gps-locatie </Header>
 		<Content>
 			<SfTextBox Value="@(GpsService.IsMocked ? "Mocking Actief" : "Echte GPS Actief")"
-					   Placeholder="GPS Status"
+					   Placeholder="GPS-status"
 					   FloatLabelType="FloatLabelType.Always"
 					   Readonly="true" />
 
 			<SfNumericTextBox TValue="double?"
 							  Value="@GpsService.CurrentLocation?.Latitude"
-							  Placeholder="Huidige Latitude"
+							  Placeholder="Huidige breedtegraad"
 							  FloatLabelType="FloatLabelType.Always"
 							  Readonly="true"
 							  ShowSpinButton="false"
@@ -22,7 +22,7 @@
 
 			<SfNumericTextBox TValue="double?"
 							  Value="@GpsService.CurrentLocation?.Longitude"
-							  Placeholder="Huidige Longitude"
+							  Placeholder="Huidige lengtegraad"
 							  FloatLabelType="FloatLabelType.Always"
 							  Readonly="true"
 							  ShowSpinButton="false"
@@ -30,37 +30,37 @@
 
 			<SfNumericTextBox TValue="double"
 							  @bind-Value="@_mockLatitude"
-							  Placeholder="Mock Latitude"
+							  Placeholder="Nagebootste breedtegraad"
 							  FloatLabelType="FloatLabelType.Always"
 							  ShowSpinButton="false"
 							  Format="F6" />
 
 			<SfNumericTextBox TValue="double"
 							  @bind-Value="@_mockLongitude"
-							  Placeholder="Mock Longitude"
+							  Placeholder="Nagebootste lengtegraad"
 							  FloatLabelType="FloatLabelType.Always"
 							  ShowSpinButton="false"
 							  Format="F6" />
 
 			<SfNumericTextBox TValue="double"
 							  @bind-Value="@_mockAccuracy"
-							  Placeholder="Mock Accuracy (meters)"
+							  Placeholder="Nagebootste nauwkeurigheid (meters)"
 							  FloatLabelType="FloatLabelType.Always"
 							  ShowSpinButton="false"
 							  Format="F0" />
 
-			<SfButton Content="Set Mock Location"
+			<SfButton Content="Nagebootste locatie instellen"
 					  OnClick="@OnSetMockClick" />
 
 			@if (GpsService.IsMocked)
 			{
-				<SfButton Content="Reset to Real GPS"
+				<SfButton Content="Herstellen naar echte GPS"
 						  OnClick="@OnResetClick" />
 			}
 		</Content>
 	</DialogTemplates>
 	<DialogButtons>
-		<DialogButton Content="Close" OnClick="@OnCloseClick" />
+		<DialogButton Content="Sluiten" OnClick="@OnCloseClick" />
 	</DialogButtons>
 </SfDialog>
 
