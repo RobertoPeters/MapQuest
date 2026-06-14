@@ -2,3 +2,5 @@
 bin
 obj
 /src/.vs
+/src/MapQuest/DeployLinux
+/Docker

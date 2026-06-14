@@ -1,0 +1,12 @@
+services:
+  mapquest:
+    build: 
+      dockerfile: ./Dockerfile
+    environment:
+      - TZ=Europe/Amsterdam
+    ports:
+      - "3080:3080"
+    volumes:
+      - ./Docker:/app/Settings
+
+    

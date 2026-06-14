@@ -9,6 +9,20 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<Compile Remove="Settings\**" />
+		<Content Remove="Settings\**" />
+		<EmbeddedResource Remove="Settings\**" />
+		<None Remove="Settings\**" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Compile Remove="DeployLinux\**" />
+		<Content Remove="DeployLinux\**" />
+		<EmbeddedResource Remove="DeployLinux\**" />
+		<None Remove="DeployLinux\**" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<ProjectReference Include="..\MapQuest.Client\MapQuest.Client.csproj" />
 		<ProjectReference Include="..\MapQuest.Data.Application\MapQuest.Data.Application.csproj" />
 		<ProjectReference Include="..\MapQuest.Data.Document\MapQuest.Data.Document.csproj" />
