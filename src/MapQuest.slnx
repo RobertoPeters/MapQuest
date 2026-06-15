@@ -5,6 +5,7 @@
     <File Path="nuget.config" />
   </Folder>
   <Project Path="MapQuest.Client.Gps/MapQuest.Client.Gps.csproj" Id="60e4c5b3-0797-4f22-a45d-c7f52de42eb8" />
+  <Project Path="MapQuest.Client.HtmlEditor/MapQuest.Client.HtmlEditor.csproj" />
   <Project Path="MapQuest.Client.Interfaces/MapQuest.Client.Interfaces.csproj" Id="89b67c86-3d13-450c-b023-9c11e21ac5dc" />
   <Project Path="MapQuest.Client.Map/MapQuest.Client.Map.csproj" />
   <Project Path="MapQuest.Client.Quests/MapQuest.Client.Quests.csproj" />

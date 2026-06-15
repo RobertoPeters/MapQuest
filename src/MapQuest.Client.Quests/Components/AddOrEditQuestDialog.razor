@@ -1,0 +1,93 @@
+@using System
+@using System.ComponentModel.DataAnnotations
+@using MapQuest.Client.Interfaces
+@using MapQuest.Models
+@inject IQuestService questService
+
+<SfDialog Width="80%" Height="80%" ShowCloseIcon="true" @bind-Visible="@IsVisible">
+	<DialogTemplates>
+        <Header> @(orgQuest == null ? "Aanmaken" : "Bewerken") puzzeltocht </Header>
+		<Content>
+            <SfDataForm Model="@_model"
+                        ButtonsAlignment="FormButtonsAlignment.Left"
+                        OnValidSubmit="HandleSubmit">
+                <FormValidator>
+                    <DataAnnotationsValidator></DataAnnotationsValidator>
+                </FormValidator>
+
+                <FormItems>
+                    <FormItem Field="@nameof(_model.Name)" Placeholder="Naam" />
+                    <FormItem Field="@nameof(_model.Description)" Placeholder="Beschrijving">
+                        <Template>
+                            <label class="e-form-label">Beschrijving</label>
+                            <MapQuest.Client.HtmlEditor.Editor @bind-Value="_model.Description" EnableResize="true" />
+                        </Template>
+                    </FormItem>
+                </FormItems>
+                <FormButtons>
+                    <SfButton>@(orgQuest == null ? "Aanmaken" : "Bewerken")</SfButton>
+                </FormButtons>
+            </SfDataForm>
+		</Content>
+	</DialogTemplates>
+</SfDialog>
+
+
+@code {
+    private bool IsVisible { get; set; } = false;
+    private Models.Quest? orgQuest;
+    private Models.Quest? editedquest;
+    private EditModel _model = new();
+
+    [Parameter]
+    public EventCallback OnQuestEdited { get; set; }
+
+    public class EditModel
+    {
+        [Required(ErrorMessage = "Naam is verplicht.")]
+        public string Name { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Beschrijving is verplicht.")]
+        public string Description { get; set; } = string.Empty;
+    }
+
+    public void OpenDialog(Models.Quest? quest)
+    {
+        orgQuest = quest;
+        IsVisible = true;
+        _model = new();
+        _model.Name = orgQuest?.Name ?? string.Empty;
+        //_model.Description = orgQuest != null ? questService.GetQuestDescriptionAsync(orgQuest.Id
+        StateHasChanged();
+    }
+
+    private void OnCloseClick()
+    {
+        editedquest = null;
+        IsVisible = false;
+    }
+
+    private async Task HandleSubmit()
+    {
+        editedquest = orgQuest ?? new();
+        editedquest.Name = _model.Name;
+
+        var data = new QuestAndQuestDescription()
+        {
+            Quest = editedquest,
+            QuestDescription = new QuestDescription()
+            {
+                Description = _model.Description
+            }
+        };
+
+        if (orgQuest == null)
+        {
+            await questService.AddQuestAsync(data);
+        }
+
+        OnCloseClick();
+
+        await OnQuestEdited.InvokeAsync();
+    }
+}

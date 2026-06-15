@@ -1,0 +1,75 @@
+<SfRichTextEditor @ref="refEditor"
+                  Value ="@Value"
+                  ValueChanged="OnValueChanged"
+                  ValueExpression="ValueExpression"
+                  EnableResize="@EnableResize"
+                  EnableHtmlSanitizer="false"
+                  @attributes="AdditionalAttributes">
+    <RichTextEditorEvents OnToolbarClick="@ToolbarClick" Blur="@OnBlur"  />
+    <RichTextEditorQuickToolbarSettings Text="@TextQuickToolbarItems"></RichTextEditorQuickToolbarSettings>
+    <RichTextEditorImageSettings SaveFormat="SaveFormat.Base64" MaxFileSize="@(1 * 1024 * 1024)"></RichTextEditorImageSettings>
+</SfRichTextEditor>
+
+@code {
+    SfRichTextEditor? refEditor;
+
+    [Parameter]
+    public string Value { get; set; } = string.Empty;
+
+    [Parameter]
+    public bool EnableResize { get; set; }
+
+    [Parameter]
+    public EventCallback<string> ValueChanged { get; set; }
+
+    [Parameter]
+    public System.Linq.Expressions.Expression<Func<string>>? ValueExpression { get; set; }
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private List<ToolbarItemModel> TextQuickToolbarItems = new List<ToolbarItemModel>()
+    {
+        new ToolbarItemModel() { Command = ToolbarCommand.Formats },
+        new ToolbarItemModel() { Command = ToolbarCommand.Separator },
+        new ToolbarItemModel() { Command = ToolbarCommand.Bold },
+        new ToolbarItemModel() { Command = ToolbarCommand.Italic },
+        new ToolbarItemModel() { Command = ToolbarCommand.FontColor },
+        new ToolbarItemModel() { Command = ToolbarCommand.BackgroundColor },
+        new ToolbarItemModel() { Command = ToolbarCommand.Separator },
+        new ToolbarItemModel() { Command = ToolbarCommand.CreateLink },
+        new ToolbarItemModel() { Command = ToolbarCommand.Image },
+        new ToolbarItemModel() { Command = ToolbarCommand.CreateTable },
+        new ToolbarItemModel() { Command = ToolbarCommand.Blockquote },
+        new ToolbarItemModel() { Command = ToolbarCommand.Separator },
+        new ToolbarItemModel() { Command = ToolbarCommand.UnorderedList },
+        new ToolbarItemModel() { Command = ToolbarCommand.OrderedList },
+        new ToolbarItemModel() { Command = ToolbarCommand.Indent },
+        new ToolbarItemModel() { Command = ToolbarCommand.Outdent }
+    };
+
+    protected override bool ShouldRender()
+    {
+        return false;
+    }
+
+    private async Task OnValueChanged(string newValue)
+    {
+        Value = newValue;
+        if (ValueChanged.HasDelegate)
+        {
+            await ValueChanged.InvokeAsync(newValue);
+        }
+    }
+
+    private void ToolbarClick(ToolbarClickEventArgs args)
+    {
+        refEditor!.PreventRender();
+    }
+
+    private void OnBlur()
+    {
+        refEditor!.PreventRender();
+    }
+}
+

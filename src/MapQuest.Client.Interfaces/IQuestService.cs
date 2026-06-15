@@ -7,5 +7,8 @@ namespace MapQuest.Client.Interfaces;
 public interface IQuestService
 {
     [Get("/api/quest")]
-    Task<FilteredDataResult<User>> GetUserQuestsAsync([Query] FilteredDataRequest request, string? userId = null);
+    Task<FilteredDataResult<Quest>> GetUserQuestsAsync([Query] FilteredDataRequest request, string? userId = null);
+
+    [Post("/api/quest/add")]
+    Task<Quest> AddQuestAsync([Body] QuestAndQuestDescription quest);
 }

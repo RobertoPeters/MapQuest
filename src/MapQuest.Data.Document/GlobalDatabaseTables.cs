@@ -2,5 +2,9 @@
 
 public enum GlobalDatabaseTables
 {
-    Quest
+    Quest,
+    QuestDescription,
+    QuestStory,
+    QuestStep,
+    QuestStepOrder,
 }

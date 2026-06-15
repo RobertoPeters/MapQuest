@@ -6,7 +6,6 @@ namespace MapQuest.Data.Document;
 
 public class Repository : IDocumentRepository
 {
-    const string QuestTableName = "Quest";
     private readonly ConcurrentDictionary<string, byte> _userDbSetuped = [];
     private readonly object _lockObject = new();
 
@@ -72,10 +71,10 @@ public class Repository : IDocumentRepository
         var currentVersion = GetDatabaseVersion(connection);
         if (currentVersion == 0)
         {
+            var tableNames = Enum.GetNames<UserDatabaseTables>();
+            var commandText = string.Join(";\n", tableNames.Select(t => CreateTableStatement(t)));
             var command = connection.CreateCommand();
-            command.CommandText =
-    @$"{CreateTableStatement(UserDatabaseTables.Quest.ToString())};
-";
+            command.CommandText = commandText;
             command.ExecuteNonQuery();
             command.Dispose();
 
@@ -105,10 +104,10 @@ public class Repository : IDocumentRepository
         var currentVersion = await GetDatabaseVersionAsync(connection);
         if (currentVersion == 0)
         {
+            var tableNames = Enum.GetNames<GlobalDatabaseTables>();
+            var commandText = string.Join(";\n", tableNames.Select(t => CreateTableStatement(t)));
             var command = connection.CreateCommand();
-            command.CommandText =
-    @$"{CreateTableStatement(GlobalDatabaseTables.Quest.ToString())};
-";
+            command.CommandText = commandText;
             await command.ExecuteNonQueryAsync();
             await command.DisposeAsync();
 

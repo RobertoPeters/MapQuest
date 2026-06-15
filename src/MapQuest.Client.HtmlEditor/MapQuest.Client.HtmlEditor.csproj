@@ -21,7 +21,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\MapQuest.Client.HtmlEditor\MapQuest.Client.HtmlEditor.csproj" />
 		<ProjectReference Include="..\MapQuest.Client.Interfaces\MapQuest.Client.Interfaces.csproj" />
 	</ItemGroup>
 

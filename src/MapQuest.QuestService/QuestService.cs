@@ -16,4 +16,20 @@ public class QuestService(IDocumentRepository _documentRepository) : IQuestServi
 
         return result;
     }
+
+    public async Task AddQuestAsync(string userId, Quest quest, QuestDescription questDescription)
+    {
+        await _documentRepository.Execute(userId, true, async (executor) =>
+        {
+            quest.UserId = userId;
+            quest.Id = quest.NewId();
+            quest.QuestId = quest.Id;
+            questDescription.Id = quest.Id;
+            questDescription.QuestId = quest.Id;
+            questDescription.UserId = userId;
+
+            await executor.InsertDataAsync(UserDatabaseTables.Quest.ToString(), quest);
+            await executor.InsertDataAsync(UserDatabaseTables.QuestDescription.ToString(), questDescription);
+        });
+    }
 }

@@ -1,6 +1,4 @@
-using MapQuest.Client.Pages;
 using MapQuest.Components;
-using MapQuest.Components.Account;
 using MapQuest.Data;
 using MapQuest.Data.Document;
 using MapQuest.Interfaces;
@@ -8,7 +6,6 @@ using MapQuest.QuestService;
 using MapQuest.UserService;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Syncfusion.Blazor;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -35,7 +32,6 @@ builder.Services.AddRazorComponents()
     .AddAuthenticationStateSerialization();
 
 builder.Services.AddCascadingAuthenticationState();
-builder.Services.AddScoped<IdentityRedirectManager>();
 
 builder.Services.AddAuthentication(options =>
     {
@@ -60,7 +56,6 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
     .AddSignInManager()
     .AddDefaultTokenProviders();
 
-builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IDocumentRepository, Repository>();
 builder.Services.AddScoped<IQuestService, QuestService>();

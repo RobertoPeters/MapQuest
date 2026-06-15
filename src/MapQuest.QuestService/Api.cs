@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
-using System.Diagnostics.CodeAnalysis;
 using System.Security.Claims;
 
 namespace MapQuest.UserService;
@@ -29,8 +28,14 @@ public static class Api
             {
                 userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
             }
-            var users = await questService.GetUserQuestsAsync(dataRequest, userId);
-            return Results.Ok(users);
+            var quests = await questService.GetUserQuestsAsync(dataRequest, userId);
+            return Results.Ok(quests);
+        });
+
+        group.MapPost("/add", async ([FromBody] QuestAndQuestDescription quest, [FromServices] IQuestService questService, ClaimsPrincipal user) =>
+        {
+            await questService.AddQuestAsync(user.FindFirst(ClaimTypes.NameIdentifier)!.Value, quest.Quest, quest.QuestDescription);
+            return Results.Ok(quest);
         });
 
 

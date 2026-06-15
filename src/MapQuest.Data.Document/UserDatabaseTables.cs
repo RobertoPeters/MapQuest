@@ -2,5 +2,9 @@
 
 public enum UserDatabaseTables
 {
-    Quest
+    Quest,
+    QuestDescription,
+    QuestStory,
+    QuestStep,
+    QuestStepOrder,
 }

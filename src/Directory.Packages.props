@@ -22,6 +22,7 @@
     <PackageVersion Include="Syncfusion.Blazor.Maps" Version="33.2.12" />
     <PackageVersion Include="Syncfusion.Blazor.Notifications" Version="33.2.12" />
     <PackageVersion Include="Syncfusion.Blazor.Popups" Version="33.2.12" />
+    <PackageVersion Include="Syncfusion.Blazor.RichTextEditor" Version="33.2.12" />
     <PackageVersion Include="Syncfusion.Blazor.Themes" Version="33.2.12" />
     <PackageVersion Include="Universal.Microsoft.AspNetCore.Components.Web" Version="4.0.0" />
   </ItemGroup>
