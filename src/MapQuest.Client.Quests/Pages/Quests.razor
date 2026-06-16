@@ -2,6 +2,7 @@
 @using MapQuest.Client.Interfaces
 @using Syncfusion.Blazor.Data
 @using Microsoft.AspNetCore.Authorization
+@inject SfDialogService DialogService
 @inject IQuestService questService
 
 @attribute [Authorize]
@@ -9,12 +10,19 @@
 <PageTitle>Mijn puzzeltochten</PageTitle>
 
 <SfGrid @ref="gridRef" TValue="Models.Quest" AllowPaging="true">
-	<SfDataManager Adaptor="Adaptors.CustomAdaptor" AdaptorInstance="@typeof(QuestDataAdaptor)" />
-	<GridPageSettings PageSize="5" PageSizes="@(new string[] { "5", "10", "20" })" PageCount="3" />
-	<GridColumns>
-		<GridColumn Field="@nameof(Models.Quest.Id)" HeaderText="ID" TextAlign="TextAlign.Left" Width="100"></GridColumn>
-		<GridColumn Field="@nameof(Models.Quest.Name)" HeaderText="Naam" TextAlign="TextAlign.Left" Width="200"></GridColumn>
-	</GridColumns>
+    <GridEvents TValue="Models.Quest"  CommandClicked="@GridCommandClicked" />
+    <SfDataManager Adaptor="Adaptors.CustomAdaptor" AdaptorInstance="@typeof(QuestDataAdaptor)" />
+    <GridPageSettings PageSize="5" PageSizes="@(new string[] { "5", "10", "20" })" PageCount="3" />
+    <GridColumns>
+        <GridColumn Field="@nameof(Models.Quest.Id)" HeaderText="ID" TextAlign="TextAlign.Left" Width="100"></GridColumn>
+        <GridColumn Field="@nameof(Models.Quest.Name)" HeaderText="Naam" TextAlign="TextAlign.Left" Width="200"></GridColumn>
+        <GridColumn>
+            <GridCommandColumns>
+                <GridCommandColumn Type="CommandButtonType.Edit" ButtonOption="@(new CommandButtonOptions() { Content = "Bewerk", IconCss = "e-icons e-edit" })" />
+                <GridCommandColumn Type="CommandButtonType.Delete" ButtonOption="@(new CommandButtonOptions() { Content = "Verwijder", IconCss = "e-icons e-delete" })" />
+            </GridCommandColumns>
+        </GridColumn>
+    </GridColumns>
 </SfGrid>
 
 <SfButton Content="Aanmaken" OnClick="@OpenAddQuestDialog" />
@@ -33,5 +41,24 @@
     private async void OnQuestEdited()
     {
         await gridRef!.Refresh();
+    }
+
+    private async Task GridCommandClicked(CommandClickEventArgs<Models.Quest> e)
+    {
+        if (e.CommandColumn?.Type == CommandButtonType.Delete)
+        {
+            if (await DialogService.ConfirmAsync("Weet je zeker dat je deze puzzeltocht wilt verwijderen?", "Verwijder puzzeltocht", new DialogOptions()
+            {
+                PrimaryButtonOptions = new DialogButtonOptions() { Content = "Ja" },                
+                CancelButtonOptions = new DialogButtonOptions() { Content = "Nee" }
+            }))
+            {
+                //todo
+            }
+        }
+        else if (e.CommandColumn?.Type == CommandButtonType.Edit)
+        {
+            addOrEditQuestDialog!.OpenDialog(e.RowData);
+        }
     }
 }

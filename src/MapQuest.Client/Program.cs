@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.JSInterop;
 using Refit;
 using Syncfusion.Blazor;
+using Syncfusion.Blazor.Popups;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
@@ -26,6 +27,7 @@ builder.Services.AddRefitClient<MapQuest.Client.Interfaces.IQuestService>()
     .ConfigureHttpClient(c => c.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress))
     .AddHttpMessageHandler<CookieHandler>();
 
+builder.Services.AddScoped<SfDialogService>();
 builder.Services.AddSyncfusionBlazor();
 builder.Services.AddScoped<UserDataAdaptor>();
 builder.Services.AddScoped<QuestDataAdaptor>();
