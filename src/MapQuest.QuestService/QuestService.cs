@@ -25,7 +25,8 @@ public class QuestService(IDocumentRepository _documentRepository) : IQuestServi
             var request = new FilteredDataRequest
             {
                 Filter = [(nameof(QuestDescription.Id), questId)],
-                Take = 1
+                Take = 1,
+                IgnoreCount = true
             };
             var data = await executor.GetDataAsync<QuestDescription>(UserDatabaseTables.QuestDescription.ToString(), request);
             result = data.Items.FirstOrDefault();

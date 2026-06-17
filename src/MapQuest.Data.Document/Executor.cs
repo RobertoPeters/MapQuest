@@ -2,6 +2,7 @@
 using MapQuest.Models;
 using Microsoft.Data.Sqlite;
 using System.Data.Common;
+using System.Reflection;
 
 namespace MapQuest.Data.Document;
 
@@ -10,21 +11,20 @@ internal class Executor(string _connectionString) : IDocumentRepositoryExecutor,
     private SqliteConnection? _connection;
     private DbTransaction? _transaction;
     private static HashSet<string> _validTableNames = [];
-    private static HashSet<string> _validColumnNames = [];
+    private static Dictionary<string, PropertyInfo> _validColumns = [];
 
     static Executor()
     {
         List<string> tableNames = Enum.GetNames<UserDatabaseTables>().ToList();
         tableNames.AddRange(Enum.GetNames<GlobalDatabaseTables>().ToList());
-        _validTableNames = [.. tableNames.Select(x => x.ToLower()).Distinct()];
+        _validTableNames = [.. tableNames.Distinct()];
 
-        var columnMembers = typeof(DocumentModel).GetProperties().Select(x => x.Name).ToList();
-        _validColumnNames = [.. columnMembers.Select(x => x.ToLower()).Distinct()];
+        _validColumns = typeof(DocumentModel).GetProperties().ToDictionary(x => x.Name, x => x);
     }
 
     public async Task<FilteredDataResult<T>> GetDataAsync<T>(string tableName, FilteredDataRequest request) where T : DocumentModel, new()
     {
-        if (!_validTableNames.Contains(tableName.ToLower()))
+        if (!_validTableNames.Contains(tableName))
         {
             throw new ArgumentException("Invalid table name", nameof(tableName));
         }
@@ -49,7 +49,7 @@ internal class Executor(string _connectionString) : IDocumentRepositoryExecutor,
 
         result.Items = items;
 
-        if (request.Take != null || request.Skip != null)
+        if (!request.IgnoreCount && (request.Take != null || request.Skip != null))
         {
             using var countCommand = CreateCommand($"select count(*) from {tableName} {whereClauseData.whereClause}");
             foreach (var parameter in whereClauseData.parameters)
@@ -64,12 +64,12 @@ internal class Executor(string _connectionString) : IDocumentRepositoryExecutor,
 
     public async Task<int> DeleteDataAsync(string tableName, string columnName, object? value)
     {
-        if (!_validTableNames.Contains(tableName.ToLower()))
+        if (!_validTableNames.Contains(tableName))
         {
             throw new ArgumentException("Invalid table name", nameof(tableName));
         }
 
-        if (!_validColumnNames.Contains(columnName.ToLower()))
+        if (!_validColumns.ContainsKey(columnName))
         {
             throw new ArgumentException("Invalid column name", nameof(columnName));
         }
@@ -93,7 +93,7 @@ internal class Executor(string _connectionString) : IDocumentRepositoryExecutor,
         var parameters = new List<SqliteParameter>();
         foreach (var (columnName, value) in filter)
         {
-            if (!_validColumnNames.Contains(columnName.ToLower()))
+            if (!_validColumns.ContainsKey(columnName))
             {
                 throw new ArgumentException($"Invalid column name: {columnName}", nameof(filter));
             }
@@ -112,7 +112,7 @@ internal class Executor(string _connectionString) : IDocumentRepositoryExecutor,
 
     public async Task<int> InsertDataAsync<T>(string tableName, T data) where T : DocumentModel
     {
-        if (!_validTableNames.Contains(tableName.ToLower()))
+        if (!_validTableNames.Contains(tableName))
         {
             throw new ArgumentException("Invalid table name", nameof(tableName));
         }
@@ -122,28 +122,19 @@ internal class Executor(string _connectionString) : IDocumentRepositoryExecutor,
             data.Id = data.NewId();
         }
 
-        using var command = CreateCommand($"insert into {tableName} (Id, UserId, Lat, Lon, QuestId, InsertedAt, UpdatedAt, Data) values (@Id, @UserId, @Lat, @Lon, @QuestId, @InsertedAt, @UpdatedAt, @Data)");
-        command.Parameters.AddWithValue("@Id", data.Id);
-        command.Parameters.AddWithValue("@UserId", data.UserId);
-        if (data.Lat != null)
+        using var command = CreateCommand($"insert into {tableName} ({string.Join(", ", _validColumns.Keys)}, Data) values (@{string.Join(", @", _validColumns.Keys)}, @Data)");
+        foreach(var column in _validColumns)
         {
-            command.Parameters.AddWithValue("@Lat", data.Lat);
+            var value = column.Value.GetValue(data);
+            if (value != null)
+            {
+                command.Parameters.AddWithValue(column.Key, value);
+            }
+            else
+            {
+                command.Parameters.AddWithValue(column.Key, DBNull.Value);
+            }
         }
-        else
-        {
-            command.Parameters.AddWithValue("@Lat", DBNull.Value);
-        }
-        if (data.Lon != null)
-        {
-            command.Parameters.AddWithValue("@Lon", data.Lon);
-        }
-        else
-        {
-            command.Parameters.AddWithValue("@Lon", DBNull.Value);
-        }
-        command.Parameters.AddWithValue("@QuestId", data.QuestId);
-        command.Parameters.AddWithValue("@InsertedAt", DateTime.UtcNow);
-        command.Parameters.AddWithValue("@UpdatedAt", DBNull.Value);
         command.Parameters.AddWithValue("@Data", data.ToData());
         return await command.ExecuteNonQueryAsync();
     }
