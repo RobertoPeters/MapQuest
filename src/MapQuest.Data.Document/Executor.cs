@@ -122,8 +122,37 @@ internal class Executor(string _connectionString) : IDocumentRepositoryExecutor,
             data.Id = data.NewId();
         }
 
+        data.InsertedAt = DateTime.UtcNow;
+
         using var command = CreateCommand($"insert into {tableName} ({string.Join(", ", _validColumns.Keys)}, Data) values (@{string.Join(", @", _validColumns.Keys)}, @Data)");
         foreach(var column in _validColumns)
+        {
+            var value = column.Value.GetValue(data);
+            if (value != null)
+            {
+                command.Parameters.AddWithValue(column.Key, value);
+            }
+            else
+            {
+                command.Parameters.AddWithValue(column.Key, DBNull.Value);
+            }
+        }
+        command.Parameters.AddWithValue("@Data", data.ToData());
+        return await command.ExecuteNonQueryAsync();
+    }
+
+    public async Task<int> UpdateDataAsync<T>(string tableName, T data) where T : DocumentModel
+    {
+        if (!_validTableNames.Contains(tableName))
+        {
+            throw new ArgumentException("Invalid table name", nameof(tableName));
+        }
+
+        data.UpdatedAt = DateTime.UtcNow;
+
+        var allCollumnsWithoutId = _validColumns.Keys.Where(x => x != "Id").Select(x => $"{x} = @{x}").ToList();
+        using var command = CreateCommand($"update {tableName} set {string.Join(", ", allCollumnsWithoutId)}, Data = @Data where Id = @Id");
+        foreach (var column in _validColumns)
         {
             var value = column.Value.GetValue(data);
             if (value != null)

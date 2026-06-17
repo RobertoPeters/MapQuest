@@ -38,6 +38,12 @@ public static class Api
             return Results.Ok(quest);
         });
 
+        group.MapPost("/update", async ([FromBody] QuestAndQuestDescription quest, [FromServices] IQuestService questService, ClaimsPrincipal user) =>
+        {
+            await questService.UpdateQuestAsync(user.FindFirst(ClaimTypes.NameIdentifier)!.Value, quest.Quest, quest.QuestDescription);
+            return Results.Ok(quest);
+        });
+
         group.MapDelete("/delete", async (string questId, string? userId, [FromServices] IQuestService questService, ClaimsPrincipal user) =>
         {
             if (!string.IsNullOrWhiteSpace(userId))

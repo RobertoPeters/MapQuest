@@ -77,11 +77,9 @@
         var data = new QuestAndQuestDescription()
         {
             Quest = editedquest,
-            QuestDescription = new QuestDescription()
-            {
-                Description = _model.Description
-            }
+            QuestDescription = orgQuestDescription ?? new ()
         };
+        data.QuestDescription.Description = _model.Description;
 
         if (orgQuest == null)
         {
@@ -89,7 +87,7 @@
         }
         else
         {
-            //todo
+            await questService.UpdateQuestAsync(data);
         }
 
         OnCloseClick();
