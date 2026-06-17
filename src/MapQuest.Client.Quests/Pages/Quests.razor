@@ -35,7 +35,7 @@
 
     private async Task OpenAddQuestDialog()
     {
-        addOrEditQuestDialog!.OpenDialog(null);
+        await addOrEditQuestDialog!.OpenDialog(null);
     }
 
     private async void OnQuestEdited()
@@ -53,12 +53,13 @@
                 CancelButtonOptions = new DialogButtonOptions() { Content = "Nee" }
             }))
             {
-                //todo
+                await questService.DeleteQuestsAsync(e.RowData!.Id, null);
+                await gridRef!.Refresh();
             }
         }
         else if (e.CommandColumn?.Type == CommandButtonType.Edit)
         {
-            addOrEditQuestDialog!.OpenDialog(e.RowData);
+            await addOrEditQuestDialog!.OpenDialog(e.RowData);
         }
     }
 }

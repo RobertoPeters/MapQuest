@@ -11,4 +11,10 @@ public interface IQuestService
 
     [Post("/api/quest/add")]
     Task<Quest> AddQuestAsync([Body] QuestAndQuestDescription quest);
+
+    [Delete("/api/quest/delete")]
+    Task DeleteQuestsAsync(string questId, string? userId = null);
+
+    [Get("/api/quest/description")]
+    Task<QuestDescription?> GetQuestDescriptionAsync(string questId, string? userId = null);
 }

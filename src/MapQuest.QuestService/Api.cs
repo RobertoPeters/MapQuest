@@ -38,6 +38,29 @@ public static class Api
             return Results.Ok(quest);
         });
 
+        group.MapDelete("/delete", async (string questId, string? userId, [FromServices] IQuestService questService, ClaimsPrincipal user) =>
+        {
+            if (!string.IsNullOrWhiteSpace(userId))
+            {
+                //check role Admin
+                if (!user.IsInRole("Admin"))
+                {
+                    return Results.Forbid();
+                }
+            }
+            else
+            {
+                userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
+            }
+            await questService.DeleteQuestAsync(userId, questId);
+            return Results.Ok();
+        });
+
+        group.MapGet("/description", async (string questId, string? userId, [FromServices] IQuestService questService, ClaimsPrincipal user) =>
+        {
+            var questDescription = await questService.GetQuestDescriptionAsync(questId, userId ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty);
+            return Results.Ok(questDescription);
+        });
 
         return app;
     }

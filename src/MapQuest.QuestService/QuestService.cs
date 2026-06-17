@@ -17,6 +17,23 @@ public class QuestService(IDocumentRepository _documentRepository) : IQuestServi
         return result;
     }
 
+    public async Task<QuestDescription?> GetQuestDescriptionAsync(string questId, string userId)
+    {
+        QuestDescription? result = null!;
+        await _documentRepository.Execute(userId, false, async (executor) =>
+        {
+            var request = new FilteredDataRequest
+            {
+                Filter = [(nameof(QuestDescription.Id), questId)],
+                Take = 1
+            };
+            var data = await executor.GetDataAsync<QuestDescription>(UserDatabaseTables.QuestDescription.ToString(), request);
+            result = data.Items.FirstOrDefault();
+        });
+
+        return result;
+    }
+
     public async Task AddQuestAsync(string userId, Quest quest, QuestDescription questDescription)
     {
         await _documentRepository.Execute(userId, true, async (executor) =>
@@ -30,6 +47,15 @@ public class QuestService(IDocumentRepository _documentRepository) : IQuestServi
 
             await executor.InsertDataAsync(UserDatabaseTables.Quest.ToString(), quest);
             await executor.InsertDataAsync(UserDatabaseTables.QuestDescription.ToString(), questDescription);
+        });
+    }
+
+    public async Task DeleteQuestAsync(string? userId, string questId)
+    {
+        await _documentRepository.Execute(userId, true, async (executor) =>
+        {
+            await executor.DeleteDataAsync(UserDatabaseTables.QuestDescription.ToString(), nameof(Quest.QuestId), questId);
+            await executor.DeleteDataAsync(UserDatabaseTables.Quest.ToString(), nameof(Quest.Id), questId);
         });
     }
 }

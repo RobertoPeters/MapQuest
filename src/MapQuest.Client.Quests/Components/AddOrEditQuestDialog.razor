@@ -36,6 +36,7 @@
 @code {
     private bool IsVisible { get; set; } = false;
     private Models.Quest? orgQuest;
+    private Models.QuestDescription? orgQuestDescription;
     private Models.Quest? editedquest;
     private EditModel _model = new();
 
@@ -51,13 +52,14 @@
         public string Description { get; set; } = string.Empty;
     }
 
-    public void OpenDialog(Models.Quest? quest)
+    public async Task OpenDialog(Models.Quest? quest)
     {
         orgQuest = quest;
+        orgQuestDescription = orgQuest == null ? null : await questService.GetQuestDescriptionAsync(orgQuest.Id, null);
         IsVisible = true;
         _model = new();
         _model.Name = orgQuest?.Name ?? string.Empty;
-        //_model.Description = orgQuest != null ? questService.GetQuestDescriptionAsync(orgQuest.Id
+        _model.Description = orgQuestDescription?.Description ?? "";
         StateHasChanged();
     }
 
@@ -84,6 +86,10 @@
         if (orgQuest == null)
         {
             await questService.AddQuestAsync(data);
+        }
+        else
+        {
+            //todo
         }
 
         OnCloseClick();
