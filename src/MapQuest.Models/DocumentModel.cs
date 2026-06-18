@@ -8,15 +8,18 @@ public class DocumentModel
 
     public string? UserId { get; set; }
 
-    public long? Lat { get; set; }
+    public double? Lat { get; set; }
 
-    public long? Lon { get; set; }
+    public double? Lon { get; set; }
 
     public string? QuestId { get; set; }
 
     public DateTime InsertedAt { get; set; }
 
     public DateTime? UpdatedAt { get; set; }
+
+    [JsonIgnore]
+    public double? CalculatedDistance { get; set; }
 
     public string NewId()
     {

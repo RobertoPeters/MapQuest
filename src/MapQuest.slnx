@@ -14,6 +14,7 @@
   <Project Path="MapQuest.Client/MapQuest.Client.csproj" />
   <Project Path="MapQuest.Data.Application/MapQuest.Data.Application.csproj" />
   <Project Path="MapQuest.Data.Document/MapQuest.Data.Document.csproj" Id="834702e6-005f-489a-9c73-140bf2d99c33" />
+  <Project Path="MapQuest.Geo/MapQuest.Geo.csproj" Id="71db76af-179e-4b07-b8dd-0a1d6d39943c" />
   <Project Path="MapQuest.Interfaces/MapQuest.Interfaces.csproj" />
   <Project Path="MapQuest.Models/MapQuest.Models.csproj" Id="799860a9-7192-4f4d-b332-fb91973c1f50" />
   <Project Path="MapQuest.QuestService/MapQuest.QuestService.csproj" />

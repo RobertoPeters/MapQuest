@@ -12,6 +12,7 @@ internal class Executor(string _connectionString) : IDocumentRepositoryExecutor,
     private DbTransaction? _transaction;
     private static HashSet<string> _validTableNames = [];
     private static Dictionary<string, PropertyInfo> _validColumns = [];
+    private static Dictionary<string, PropertyInfo> _realTableColumns = [];
 
     static Executor()
     {
@@ -20,6 +21,7 @@ internal class Executor(string _connectionString) : IDocumentRepositoryExecutor,
         _validTableNames = [.. tableNames.Distinct()];
 
         _validColumns = typeof(DocumentModel).GetProperties().ToDictionary(x => x.Name, x => x);
+        _realTableColumns = _validColumns.Where(x => x.Key != "CalculatedDistance").ToDictionary(x => x.Key, x => x.Value);
     }
 
     public async Task<FilteredDataResult<T>> GetDataAsync<T>(string tableName, FilteredDataRequest request) where T : DocumentModel, new()
@@ -31,9 +33,16 @@ internal class Executor(string _connectionString) : IDocumentRepositoryExecutor,
 
         var result = new FilteredDataResult<T>();
         var items = new List<T>();
+        var latLonProvided = request.Lat != null && request.Lon != null;
 
         var whereClauseData = CreateWhereClause(request.Filter);
-        using var command = CreateCommand($"select Data from {tableName}{whereClauseData.whereClause}{(request.Take != null ? $" limit {request.Take}" : "")}{(request.Skip != null ? $" offset {request.Skip}" : "")}");
+        using var command = CreateCommand($"select Data {(latLonProvided ? ", Distance(@UserLat, @UserLon, Lat, Lon) as CalculatedDistance" : "")} from {tableName}{whereClauseData.whereClause}{(request.Take != null ? $" limit {request.Take}" : "")}{(request.Skip != null ? $" offset {request.Skip}" : "")}");
+        if (latLonProvided)
+        {
+            result.Distances = [];
+            command.Parameters.AddWithValue("UserLat",request.Lat);
+            command.Parameters.AddWithValue("UserLon",request.Lon);
+        }
         foreach (var parameter in whereClauseData.parameters)
         {
             command.Parameters.Add(parameter);
@@ -45,6 +54,8 @@ internal class Executor(string _connectionString) : IDocumentRepositoryExecutor,
 
             var record = DocumentModel.FromData<T>(data);
             items.Add(record);
+
+            result.Distances?.Add(record.Id, reader.IsDBNull(1) ? null : reader.GetDouble(1));
         }
 
         result.Items = items;
@@ -124,8 +135,8 @@ internal class Executor(string _connectionString) : IDocumentRepositoryExecutor,
 
         data.InsertedAt = DateTime.UtcNow;
 
-        using var command = CreateCommand($"insert into {tableName} ({string.Join(", ", _validColumns.Keys)}, Data) values (@{string.Join(", @", _validColumns.Keys)}, @Data)");
-        foreach(var column in _validColumns)
+        using var command = CreateCommand($"insert into {tableName} ({string.Join(", ", _realTableColumns.Keys)}, Data) values (@{string.Join(", @", _realTableColumns.Keys)}, @Data)");
+        foreach(var column in _realTableColumns)
         {
             var value = column.Value.GetValue(data);
             if (value != null)
@@ -150,9 +161,9 @@ internal class Executor(string _connectionString) : IDocumentRepositoryExecutor,
 
         data.UpdatedAt = DateTime.UtcNow;
 
-        var allCollumnsWithoutId = _validColumns.Keys.Where(x => x != "Id").Select(x => $"{x} = @{x}").ToList();
+        var allCollumnsWithoutId = _realTableColumns.Keys.Where(x => x != "Id").Select(x => $"{x} = @{x}").ToList();
         using var command = CreateCommand($"update {tableName} set {string.Join(", ", allCollumnsWithoutId)}, Data = @Data where Id = @Id");
-        foreach (var column in _validColumns)
+        foreach (var column in _realTableColumns)
         {
             var value = column.Value.GetValue(data);
             if (value != null)
@@ -183,6 +194,7 @@ internal class Executor(string _connectionString) : IDocumentRepositoryExecutor,
     {
         _connection = new SqliteConnection(_connectionString);
         await _connection.OpenAsync();
+        _connection.CreateFunction("Distance", (double? lat1, double? lon1, double? lat2, double? lon2) => Geo.GeoService.CalculateDistance(lat1, lon1, lat2, lon2));
         if (withinTransaction)
         {
             _transaction = await _connection.BeginTransactionAsync();

@@ -16,6 +16,29 @@
     <GridColumns>
         <GridColumn Field="@nameof(Models.Quest.Id)" HeaderText="ID" TextAlign="TextAlign.Left" Width="100"></GridColumn>
         <GridColumn Field="@nameof(Models.Quest.Name)" HeaderText="Naam" TextAlign="TextAlign.Left" Width="200"></GridColumn>
+        <GridColumn Field="@nameof(Models.Quest.CalculatedDistance)" HeaderText="Locatie" Format="{0}km" TextAlign="TextAlign.Left" Width="200">
+            <Template>
+                @{
+                    var distance = (context as Models.Quest)?.CalculatedDistance;
+                    if (distance == null)
+                    {
+                        <span></span>
+                    }
+                    else if (distance > 10000)
+                    {
+                        <span>@((distance.Value / 1000.0).ToString("0")) km</span>
+                    }
+                    else if (distance > 1000)
+                    {
+                        <span>@((distance.Value / 1000.0).ToString("0.0")) km</span>
+                    }
+                    else
+                    {
+                        <span>@(distance.Value.ToString("0")) m</span>
+                    }
+                }
+            </Template>
+        </GridColumn>
         <GridColumn>
             <GridCommandColumns>
                 <GridCommandColumn Type="CommandButtonType.Edit" ButtonOption="@(new CommandButtonOptions() { Content = "Bewerk", IconCss = "e-icons e-edit" })" />

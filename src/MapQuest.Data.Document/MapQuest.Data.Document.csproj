@@ -11,6 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\MapQuest.Geo\MapQuest.Geo.csproj" />
     <ProjectReference Include="..\MapQuest.Interfaces\MapQuest.Interfaces.csproj" />
   </ItemGroup>
 

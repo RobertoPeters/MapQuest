@@ -88,7 +88,7 @@ public class Repository : IDocumentRepository
 
     private string CreateTableStatement(string tableName)
     {
-        return $"CREATE TABLE IF NOT EXISTS {tableName}(Id TEXT PRIMARY KEY, UserId TEXT, Lat INTEGER, Lon INTEGER, QuestId TEXT, InsertedAt INTEGER, UpdatedAt INTEGER, Data TEXT)";
+        return $"CREATE TABLE IF NOT EXISTS {tableName}(Id TEXT PRIMARY KEY, UserId TEXT, Lat REAL, Lon REAL, QuestId TEXT, InsertedAt INTEGER, UpdatedAt INTEGER, Data TEXT)";
     }
 
 
