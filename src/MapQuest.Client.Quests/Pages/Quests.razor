@@ -14,27 +14,49 @@
     <SfDataManager Adaptor="Adaptors.CustomAdaptor" AdaptorInstance="@typeof(QuestDataAdaptor)" />
     <GridPageSettings PageSize="5" PageSizes="@(new string[] { "5", "10", "20" })" PageCount="3" />
     <GridColumns>
-        <GridColumn Field="@nameof(Models.Quest.Id)" HeaderText="ID" TextAlign="TextAlign.Left" Width="100"></GridColumn>
         <GridColumn Field="@nameof(Models.Quest.Name)" HeaderText="Naam" TextAlign="TextAlign.Left" Width="200"></GridColumn>
-        <GridColumn Field="@nameof(Models.Quest.CalculatedDistance)" HeaderText="Locatie" Format="{0}km" TextAlign="TextAlign.Left" Width="200">
+        <GridColumn Field="@nameof(Models.Quest.CalculatedDistance)" HeaderText="Locatie" TextAlign="TextAlign.Left" Width="200">
             <Template>
                 @{
-                    var distance = (context as Models.Quest)?.CalculatedDistance;
-                    if (distance == null)
+                    var quest = (context as Models.Quest);
+                    if (quest?.CalculatedDistance == null)
                     {
                         <span></span>
                     }
-                    else if (distance > 10000)
+                    else if (quest.CalculatedDistance > 10000)
                     {
-                        <span>@((distance.Value / 1000.0).ToString("0")) km</span>
+                        <span>@(Geo.GeoService.GetCoordinatesPresentation(quest.Lat, quest.Lon))</span>
                     }
-                    else if (distance > 1000)
+                    else if (quest.CalculatedDistance > 1000)
                     {
-                        <span>@((distance.Value / 1000.0).ToString("0.0")) km</span>
+                        <span>@(Geo.GeoService.GetCoordinatesPresentation(quest.Lat, quest.Lon))</span>
                     }
                     else
                     {
-                        <span>@(distance.Value.ToString("0")) m</span>
+                        <span>@(Geo.GeoService.GetCoordinatesPresentation(quest.Lat, quest.Lon))</span>
+                    }
+                }
+            </Template>
+        </GridColumn>
+        <GridColumn Field="@nameof(Models.Quest.CalculatedDistance)" HeaderText="Afstand tot locatie" TextAlign="TextAlign.Left" Width="200">
+            <Template>
+                @{
+                    var quest = (context as Models.Quest);
+                    if (quest?.CalculatedDistance == null)
+                    {
+                        <span></span>
+                    }
+                    else if (quest.CalculatedDistance > 10000)
+                    {
+                        <span>@((quest.CalculatedDistance.Value / 1000.0).ToString("0")) km</span>
+                    }
+                    else if (quest.CalculatedDistance > 1000)
+                    {
+                        <span>@((quest.CalculatedDistance.Value / 1000.0).ToString("0.0")) km</span>
+                    }
+                    else
+                    {
+                        <span>@(quest.CalculatedDistance.Value.ToString("0")) m</span>
                     }
                 }
             </Template>

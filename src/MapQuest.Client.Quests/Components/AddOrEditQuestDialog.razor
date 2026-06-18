@@ -1,6 +1,7 @@
 @using System
 @using System.ComponentModel.DataAnnotations
 @using MapQuest.Client.Interfaces
+@using MapQuest.Geo
 @using MapQuest.Models
 @inject IQuestService questService
 
@@ -17,6 +18,7 @@
 
                 <FormItems>
                     <FormItem Field="@nameof(_model.Name)" Placeholder="Naam" />
+                    <FormItem Field="@nameof(_model.Location)" Placeholder="Locatie (coordinaten)" />
                     <FormItem Field="@nameof(_model.Description)" Placeholder="Beschrijving">
                         <Template>
                             <label class="e-form-label">Beschrijving</label>
@@ -48,6 +50,10 @@
         [Required(ErrorMessage = "Naam is verplicht.")]
         public string Name { get; set; } = string.Empty;
 
+        [Required(ErrorMessage = "Locatie is verplicht.")]
+        [Coordinate(ErrorMessage = "Locatie is ongeldig.")]
+        public string Location { get; set; } = string.Empty;
+
         [Required(ErrorMessage = "Beschrijving is verplicht.")]
         public string Description { get; set; } = string.Empty;
     }
@@ -59,6 +65,7 @@
         IsVisible = true;
         _model = new();
         _model.Name = orgQuest?.Name ?? string.Empty;
+        _model.Location = GeoService.GetCoordinatesPresentation(orgQuest?.Lat, orgQuest?.Lon);
         _model.Description = orgQuestDescription?.Description ?? "";
         StateHasChanged();
     }
@@ -72,7 +79,10 @@
     private async Task HandleSubmit()
     {
         editedquest = orgQuest ?? new();
+        var location = GeoService.StringToLocation(_model.Location);
         editedquest.Name = _model.Name;
+        editedquest.Lat = location.Lat;
+        editedquest.Lon = location.Lon;
 
         var data = new QuestAndQuestDescription()
         {

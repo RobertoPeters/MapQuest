@@ -24,6 +24,7 @@
 		<ProjectReference Include="..\MapQuest.Client.Gps\MapQuest.Client.Gps.csproj" />
 		<ProjectReference Include="..\MapQuest.Client.HtmlEditor\MapQuest.Client.HtmlEditor.csproj" />
 		<ProjectReference Include="..\MapQuest.Client.Interfaces\MapQuest.Client.Interfaces.csproj" />
+		<ProjectReference Include="..\MapQuest.Geo\MapQuest.Geo.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
